@@ -1,48 +1,86 @@
-import React, { useEffect, useState, useCallback } from 'react';
-
+import React, { useEffect, useState, useCallback } from "react";
 import { Card, Container, Row, Col, Spinner, Form, Dropdown } from "react-bootstrap";
 import styled from "styled-components";
-
-import NewsModal from './NoticiaModal';
+import NewsModal from "./NoticiaModal";
 import UpdateDeleteButtons from "./UpdateDeleteButtons";
 
-// Styled component for product image
-const ProductImg = styled(Card.Img)`
+const NewsImg = styled(Card.Img)`
   width: 100%;
-  height: 200px;
-  object-fit: contain;
-  display: block;
+  height: ${(props) => (props.featured ? "300px" : "150px")};
+  object-fit: cover;
+  border-bottom: ${(props) => (props.featured ? "5px solid #000821" : "3px solid #aaa")};
 `;
 
-// Styled component for product card
-const StyledCard = styled(Card)`
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+const NewsCard = styled(Card)`
+  overflow: wrap;
+  background-color: #ffffff;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .card-title {
+    font-size: ${(props) => (props.featured ? "1.8rem" : "1.2rem")};
+    font-weight: ${(props) => (props.featured ? "bold" : "600")};
+    margin-bottom: 0.8rem;
+    color: #333;
+  }
+
   .card-text {
-    height: 110px;
+    font-size: ${(props) => (props.featured ? "1rem" : "0.9rem")};
+    color: #555;
+    height: ${(props) => (props.featured ? "171px" : "20px")};
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+  }
+
+  .card-footer {
+    font-size: 0.85rem;
+    color: #666;
+    background-color: #f8f9fa;
+    padding: 0.5rem;
+    border-top: 1px solid #ddd;
   }
 `;
 
-const getProducts = async (categoria) => {
+const StyledDropdownToggle = styled(Dropdown.Toggle)`
+  padding: 0.5rem 1.2rem;
+  background-color: #ffffff;
+  border: 1px solid #000821;
+  color: #495057;
+
+  &:hover,
+  &:focus {
+    background-color: #f8f9fa;
+    color: #343a40;
+  }
+`;
+
+const StyledContainer = styled(Container)`
+  max-width: 1100px;
+  padding: 2rem 1rem;
+`;
+
+const getNoticias = async (categoria) => {
   const params = new URLSearchParams();
-  if (categoria) params.append('categoria', categoria);
+  if (categoria) params.append("categoria", categoria);
 
   const response = await fetch(`${process.env.REACT_APP_API_URL}/noticias.php?${params.toString()}`);
-
   if (!response.ok) {
-    throw new Error('Ha ocurrido un error');
+    throw new Error("Error al cargar noticias");
   }
-
   return response.json();
 };
 
-const ProductPage = () => {
-  const [products, setProducts] = useState([]);
+const NoticiasPage = () => {
+  const [noticias, setNoticias] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [dropdownValue, setDropdownValue] = useState('');
+  const [dropdownValue, setDropdownValue] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [idNoticiaMostrar, setIdNoticiaMostrar] = useState(null);
 
@@ -53,95 +91,134 @@ const ProductPage = () => {
 
   const handleClose = () => setShowModal(false);
 
-  const fetchProducts = useCallback(async () => {
+  const fetchNoticias = useCallback(async () => {
     try {
-      const fetchedProducts = await getProducts(dropdownValue);
-      setProducts(fetchedProducts);
+      const fetchedNoticias = await getNoticias(dropdownValue);
+      setNoticias(fetchedNoticias);
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
   }, [dropdownValue]);
-  
+
   useEffect(() => {
-    fetchProducts();
-  }, [fetchProducts]);
+    fetchNoticias();
+  }, [fetchNoticias]);
 
   if (loading) {
-      return <Spinner animation="border" />;
+    return (
+      <div className="d-flex justify-content-center align-items-center" style={{ height: "100vh" }}>
+        <Spinner animation="border" variant="primary" style={{ width: "4rem", height: "4rem" }} />
+      </div>
+    );
   }
 
   if (error) {
-      return <div>Error: {error}</div>;
+    return <div className="text-center text-danger">Error: {error}</div>;
   }
 
-  return (
-    <Container
-      className="d-flex flex-column justify-content-end mx-auto p-4 my-4"
-      fluid
-    >
-      <Row className="p-2">
-        <Col md={11} className="mt-4 mb-0">
-          <h1>Bienvenido a Noticias!</h1>
-        </Col>
-        <Col md={1}>
-          <Form.Group controlId="product-category">
-            <Form.Label>Categoría</Form.Label>
-            <Dropdown>
-              <Dropdown.Toggle variant="outline-secondary" id="dropdown-basic">
-                Categoría
-              </Dropdown.Toggle>
+  const [destacada, ...resto] = noticias;
+  const secundarias = resto.slice(0, 2);
+  const inferiores = resto.slice(2);
 
+  return (
+    <StyledContainer>
+      <Row className="mb-4">
+        <Col md={12}>
+          <Form.Group controlId="news-category" className="d-flex align-items-center">
+            <Form.Label className="me-3 mb-0">Categoría:</Form.Label>
+            <Dropdown>
+              <StyledDropdownToggle id="dropdown-basic">
+                {dropdownValue || "Seleccionar"}
+              </StyledDropdownToggle>
               <Dropdown.Menu>
-                <Dropdown.Item onClick={() => setDropdownValue('')}>---</Dropdown.Item>
-                <Dropdown.Item onClick={() => setDropdownValue('CIENCIA')}>Ciencia</Dropdown.Item>
-                <Dropdown.Item onClick={() => setDropdownValue('EFEMERIDES')}>Efemerides</Dropdown.Item>
-                <Dropdown.Item onClick={() => setDropdownValue('FARANDULA')}>Farandula</Dropdown.Item>
-                <Dropdown.Item onClick={() => setDropdownValue('OTROS')}>Otros</Dropdown.Item>
+                <Dropdown.Item onClick={() => setDropdownValue("")}>---</Dropdown.Item>
+                <Dropdown.Item onClick={() => setDropdownValue("CIENCIA")}>Ciencia</Dropdown.Item>
+                <Dropdown.Item onClick={() => setDropdownValue("EFEMERIDES")}>Efemérides</Dropdown.Item>
+                <Dropdown.Item onClick={() => setDropdownValue("FARANDULA")}>Farándula</Dropdown.Item>
+                <Dropdown.Item onClick={() => setDropdownValue("OTROS")}>Otros</Dropdown.Item>
               </Dropdown.Menu>
             </Dropdown>
           </Form.Group>
         </Col>
       </Row>
-      <Row>
-        {products.map((product) => (
-          <Col
-            key={product.id_noticia}
-            id={product.id_noticia}
-            xs={12}
-            sm={12}
-            md={6}
-            lg={4}
-            xxl={3}
-            className="pb-4"
-          >
-            <StyledCard className="card shadow-md p-2 p-md-4 m-2">
-              <div style={{cursor: 'pointer'}}  onClick={() => handleShow(product.id_noticia)}>
-                <ProductImg variant="top" src={`/assets/noticias/${product.imagen}`}
-                  title="Ilustración del Producto" alt={product.copete}/>
-                <Card.Body className="d-flex flex-column pb-0">
-                  <Card.Title>{product.titulo}</Card.Title>
-                  <div>
-                    {product.copete}
-                  </div>
+      <Row className="mb-4">
+        <Col md={7}>
+          {destacada && (
+            <NewsCard featured>
+              <div onClick={() => handleShow(destacada.id_noticia)} style={{ cursor: "pointer" }}>
+                <NewsImg
+                  variant="top"
+                  src={`/assets/noticias/${destacada.imagen}`}
+                  featured
+                  alt={destacada.copete}
+                />
+                <Card.Body>
+                  <Card.Title featured>{destacada.titulo}</Card.Title>
+                  <Card.Text featured>{destacada.copete}</Card.Text>
                 </Card.Body>
-                <div className="d-flex justify-content-end">
-                  {product.fecha}
-                </div>
+                <Card.Footer className="d-flex justify-content-between">
+                   <span>{destacada.fecha}</span>
+                   <UpdateDeleteButtons productId={destacada.id_noticia} />
+                </Card.Footer>
               </div>
-              <hr/>
-              <div className="d-flex justify-content-end mt-2">
-                <UpdateDeleteButtons productId={product.id_noticia} />
+            </NewsCard>
+          )}
+        </Col>
+        <Col md={5}>
+          <Row>
+            {secundarias.map((noticia) => (
+              <Col md={12} key={noticia.id_noticia} className="mb-4">
+                <NewsCard>
+                  <div onClick={() => handleShow(noticia.id_noticia)} style={{ cursor: "pointer" }}>
+                    <NewsImg
+                      variant="top"
+                      src={`/assets/noticias/${noticia.imagen}`}
+                      alt={noticia.copete}
+                    />
+                    <Card.Body>
+                      <Card.Title>{noticia.titulo}</Card.Title>
+                      <Card.Text>{noticia.copete}</Card.Text>
+                    </Card.Body>
+                    <Card.Footer className="d-flex justify-content-between">
+                      <span>{noticia.fecha}</span>
+                      <UpdateDeleteButtons productId={noticia.id_noticia} />
+                    </Card.Footer>
+                  </div>
+                </NewsCard>
+              </Col>
+            ))}
+          </Row>
+        </Col>
+      </Row>
+      <Row>
+        {inferiores.map((noticia) => (
+          <Col md={6} key={noticia.id_noticia} className="mb-4">
+            <NewsCard>
+              <div onClick={() => handleShow(noticia.id_noticia)} style={{ cursor: "pointer" }}>
+                <NewsImg
+                  variant="top"
+                  src={`/assets/noticias/${noticia.imagen}`}
+                  alt={noticia.copete}
+                />
+                <Card.Body>
+                  <Card.Title>{noticia.titulo}</Card.Title>
+                  <Card.Text>{noticia.copete}</Card.Text>
+                </Card.Body>
+                <Card.Footer className="d-flex justify-content-between">
+                   <span>{noticia.fecha}</span>
+                    <UpdateDeleteButtons productId={noticia.id_noticia} />
+                </Card.Footer>
               </div>
-            </StyledCard>
+            </NewsCard>
           </Col>
         ))}
       </Row>
 
       <NewsModal show={showModal} handleClose={handleClose} id_noticia={idNoticiaMostrar} />
-    </Container>
+    </StyledContainer>
   );
 };
 
-export default ProductPage;
+export default NoticiasPage;

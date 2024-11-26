@@ -34,10 +34,10 @@ const UpdateDeleteButtons = ({productId}) => {
 
   return (
     <div>
-      <Button variant="primary" className="btn-sm" href={`/upload?product_id=${productId}`}>
+      <Button style={{backgroundColor: "#000821", borderColor: "#000821"}} className="btn-sm" href={`/upload?product_id=${productId}`}>
           Editar
       </Button>
-      <Button variant="danger" className="btn-sm ms-1" onClick={handleDelete}>
+      <Button style={{borderColor: "#000821", backgroundColor: "#ffffff", color: "#000"}} className="btn-sm ms-1" onClick={handleDelete}>
           Eliminar
       </Button>
     </div>  

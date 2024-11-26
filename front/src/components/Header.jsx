@@ -1,16 +1,43 @@
 import { Button, Container } from "react-bootstrap";
 import { useLocation } from "react-router-dom";
 import styled from "styled-components";
-import { NavLink } from '../utils';
+import { NavLink } from "../utils";
 
-// Styled component for logo
 const Logo = styled.img`
-  width: 100px;
+  width: 120px;
 `;
 
-// Styled Component for Nav items
 const NavItem = styled.li`
-  margin-left: 15px;
+  margin-left: 20px;
+
+  .nav-link {
+    font-size: 1rem;
+    color: #ffffff;
+    transition: color 0.3s ease, transform 0.2s ease;
+    padding: 5px 10px;
+
+    &:hover {
+      color: #6fcafa;
+      text-decoration: none;
+    }
+
+    &.active {
+      color: #ffffff;
+      font-weight: bold;
+      border-bottom: 2px solid #ffffff;
+    }
+    
+    &.active:hover {
+      color: #6fcafa;
+      text-decoration: none;
+      border-bottom: 2px solid #6fcafa;
+    }
+  }
+`;
+
+const StyledNavbar = styled.nav`
+  background: #000821;
+  }
 `;
 
 function Header() {
@@ -18,8 +45,12 @@ function Header() {
 
   return (
     <header className="header">
-      <nav className="navbar navbar-expand-lg navbar-dark navbar-bg py-3">
-        <Container fluid>
+      <StyledNavbar className="navbar navbar-expand-lg py-3">
+        <Container fluid className="justify-content-center">
+          <NavLink className="navbar-brand d-flex align-items-center" to="/">
+            <Logo src="/assets/noticias/TN_todo_noticias_logo.svg.png" alt="Logo" />
+          </NavLink>
+
           <Button
             className="navbar-toggler"
             type="button"
@@ -31,6 +62,7 @@ function Header() {
           >
             <span className="navbar-toggler-icon"></span>
           </Button>
+
           <div className="collapse navbar-collapse" id="navbarSupportedContent">
             <ul className="navbar-nav mx-auto mb-2 mb-lg-0">
               <NavItem className="nav-item">
@@ -56,10 +88,8 @@ function Header() {
               </NavItem>
             </ul>
           </div>
-          <NavLink className="navbar-brand" to="/" style={{ margin: '0', padding: '0' }}>
-          </NavLink>
         </Container>
-      </nav>
+      </StyledNavbar>
     </header>
   );
 }
